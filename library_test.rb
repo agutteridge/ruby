@@ -4,13 +4,13 @@ require "test/unit"
 class TestLibrary < Test::Unit::TestCase
 
 	# create instance variables of objects for all tests
-	def setup
-		@cal = Calendar.new
-		@book = Book.new(1, '1984', 'George Orwell')
-	end
+  def setup
+  	@cal = Calendar.new
+  	@book = Book.new(1, "1984", "George Orwell")
+  end
 
 	# testing the Calendar class
-	def test_calendar_init
+  def test_calendar_init
 		assert_equal(0, @cal.get_date)
 	end
 
