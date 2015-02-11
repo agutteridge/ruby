@@ -1,11 +1,13 @@
 require_relative "library"
+gem 'test-unit'
 require "test/unit"
 
 class TestLibrary < Test::Unit::TestCase
+  # self.test_order = :defined
 
-	# create instance variables of objects for all tests
+  # create instance variables of objects for all tests
   def setup
-  	@cal = Calendar.new
+  	@cal = Calendar.instance
   	@book = Book.new(1, "1984", "George Orwell")
   end
 

@@ -1,5 +1,8 @@
+require 'singleton'
+
 class Calendar
-	# make into singleton!
+  include Singleton
+
 	def initialize
 		@days = 0
 	end
@@ -49,5 +52,7 @@ class Book
 		"#{@id}: #{@title}, by #{@author}"
 	end
 end
+
+
 
 
