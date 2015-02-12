@@ -2,6 +2,7 @@ require_relative "library"
 require "test/unit"
 
 class TestLibrary < Test::Unit::TestCase
+  self.test_order = :defined
 
   # create instance variables of objects for all tests
   def setup
@@ -13,7 +14,7 @@ class TestLibrary < Test::Unit::TestCase
 
   # testing the Calendar class
   # must be called before all Calendar.advance methods to pass
-  def test_0_calendar_init
+  def test_calendar_init
     assert_equal(0, @cal.get_date)
   end
 
@@ -63,17 +64,17 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("Alice", @mem.get_name)
   end
 
-  def test_member_0_no_books
+  def test_member_no_books
     assert(@mem.get_books.empty?)
   end
 
-  def test_member_1_check_out
+  def test_member_check_out
     @mem.check_out(@book)
     temp_set = Set.new(@book)
     assert_equal(temp_set, @mem.get_books)
   end
 
-  def test_member_2_give_back
+  def test_member_give_back
     @mem.give_back(@book)
     assert(@mem.get_books.empty?)
   end
@@ -82,4 +83,8 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("Alice: Books are overdue", 
       @mem.send_overdue_notice("Books are overdue"))
   end
+
+  # testing the Library class
+  # def test_library_init
+  # end
 end
