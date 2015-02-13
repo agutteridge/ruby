@@ -100,10 +100,26 @@ end
 
 class Library
   def initialize
-    # read file, create books, dict of members
+    @all_books = Array.new
+    @all_members = {}
+
+    IO.foreach("collection.txt") { |x| add_book(x) }
+
     @today = Calendar.instance
     @open = false
     @current_member = nil
+  end
+
+  def add_book(line)
+    # appears to have newline at the end?
+    title = line.sub(/\t.*/, "")
+    author = line.sub(/.*\t/, "")
+    title.sub!(/\n/, "")
+    author.sub!(/\n/, "")
+
+    num = @all_books.size + 1
+    new_book = Book.new(num, title, author)
+    @all_books << new_book
   end
 
   def open
@@ -111,7 +127,15 @@ class Library
       raise 'The library is already open!'
     @today.advance
     @open = true
-    "Today is day #{@today}"
+    "Today is day #{@today.get_date}"
+  end
+
+  def find_all_overdue_books
+    @all_members.foreach { |m| m.get_books.foreach { |b| 
+      if (b.get_due_date < @today.get_date)
+        puts b.to_s
+      end
+    }}
   end
 end
 
