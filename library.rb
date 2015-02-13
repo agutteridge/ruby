@@ -131,11 +131,30 @@ class Library
   end
 
   def find_all_overdue_books
-    @all_members.foreach { |m| m.get_books.foreach { |b| 
-      if (b.get_due_date < @today.get_date)
-        puts b.to_s
+    # horrible!
+    @all_members.each do |m| 
+      m.get_books.each do |b| 
+        if (b.get_due_date < @today.get_date)
+          puts b.to_s
+        end
       end
-    }}
+    end
+  end
+
+  def issue_card(name_of_member)
+    if !@open raise 'The library is not open'
+    end
+
+    if @all_members.include? name_of_member
+      "#{name_of_member} already has a library card."
+    else
+      Member.new(name_of_member, self)
+      "Library card issued to #{name_of_member}."
+    end
+  end
+
+  def serve(name_of_member)
+    @all_members.fetch(name_of_member)
   end
 end
 
