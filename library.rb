@@ -154,10 +154,10 @@ class Library
       str = find_overdue_books
       # no overdue books for this member
       if !(str.include?("None"))
-        # overwrite result string
+        # overwrite result string i.e. first member
         if result == "No books are overdue."
           result = str
-        # append to result string
+        # append to result string i.e. all members after first member
         else
           result << str
         end
@@ -183,8 +183,8 @@ class Library
   def serve(name_of_member)
     is_not_open
 
-    @current_member = @all_members.fetch(name_of_member, nil)
     # default value is nil
+    @current_member = @all_members.fetch(name_of_member, nil)
     if @current_member.nil?
       "#{name_of_member} does not have a library card."
     else
@@ -199,11 +199,11 @@ class Library
     result_array = Array.new
     result_array << "Overdue books for #{@current_member.get_name}:\n"
 
-    @current_member.get_books.each { |b| 
+    @current_member.get_books.each do |b| 
       if (b.get_due_date < @today.get_date)
         result_array << b
       end
-    }
+    end
 
     if result_array.size == 1
       result_array << "None"
@@ -225,7 +225,7 @@ class Library
     is_not_open
     no_member
 
-    book_numbers.each { |b| 
+    book_numbers.each do |b| 
       book = find_book_by_id(b, @current_member.get_books)
       if book.nil?
         raise "The member does not have book #{b}"
@@ -233,7 +233,7 @@ class Library
       @current_member.give_back(book)
       book.check_in
       @all_books << book
-    }
+    end
 
     if book_numbers.size == 1
       "#{@current_member.get_name} has returned #{book_numbers.size} book."
@@ -245,11 +245,11 @@ class Library
   # searching through a data structure for a book using id
   def find_book_by_id(id, book_collection)
     result = Array.new
-    book_array = book_collection.each { |b|
+    book_array = book_collection.each do |b|
       if b.get_id == id
         result << b
       end
-    }
+    end
     result[0]
   end
 
@@ -260,13 +260,13 @@ class Library
       result_array = Array.new
       s = string.downcase
 
-      @all_books.each { |b| 
+      @all_books.each do |b| 
         if b.get_title.downcase.include?(s)
           result_array << b
         elsif b.get_author.downcase.include?(s)
           result_array << b
         end
-      }
+      end
 
       if result_array.empty?
         "No books found."
@@ -280,7 +280,7 @@ class Library
     is_not_open
     no_member
 
-    book_ids.each { |b| 
+    book_ids.each do |b| 
       book = find_book_by_id(b, @all_books)
       if book.nil?
         raise "The library does not have book #{b}"
@@ -288,7 +288,7 @@ class Library
       @current_member.check_out(book)
       book.check_out(@today.get_date + 7)
       @all_books.delete(book)
-    }
+    end
 
     if book_ids.size == 1
       "#{book_ids.size} book has been checked out to #{@current_member.get_name}."        
@@ -323,22 +323,3 @@ class Library
     "The library is now closed for renovations."
   end
 end
-
-# tm = Library.new
-# tm.open
-# puts tm.issue_card("Alice")
-# puts tm.search("atla")
-# puts tm.check_out([1,3,4])
-# puts tm.issue_card("Fred")
-# puts tm.check_out([2])
-# i = 8
-# while i > 0
-#   tm.close
-#   tm.open
-#   i -= 1
-# end
-# # puts tm.find_overdue_books
-# puts tm.serve("Alice")
-# puts tm.renew([4])
-# puts tm.find_all_overdue_books
-# puts tm.check_in([1,3])
