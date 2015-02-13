@@ -121,7 +121,7 @@ class Library
 
   def open
     if @open 
-      raise 'The library is already open!'
+      raise "The library is already open!"
     end
     @today.advance
     @open = true
@@ -131,7 +131,7 @@ class Library
   # if library is closed, an Exception is raised
   def is_not_open
     if !@open 
-      raise 'The library is not open'
+      raise "The library is not open."
     end
   end
 
@@ -139,7 +139,7 @@ class Library
   # an Exception is raised
   def no_member
     if @current_member == nil
-      raise 'No member is currently being served'
+      raise "No member is currently being served."
     end
   end
 
@@ -231,7 +231,7 @@ class Library
     book_numbers.each do |b| 
       book = find_book_by_id(b, @current_member.get_books)
       if book.nil?
-        raise "The member does not have book #{b}"
+        raise "The member does not have book #{b}."
       end
       @current_member.give_back(book)
       book.check_in
@@ -291,7 +291,7 @@ class Library
     book_ids.each do |b| 
       book = find_book_by_id(b, @all_books)
       if book.nil?
-        raise "The library does not have book #{b}"
+        raise "The library does not have book #{b}."
       end
       @current_member.check_out(book)
       book.check_out(@today.get_date + 7)
@@ -306,10 +306,13 @@ class Library
   end
 
   def renew(book_ids)
+    is_not_open
+    no_member
+
     book_ids.each do |b| 
       book = find_book_by_id(b, @current_member.get_books)
       if book.nil?
-        raise "The member does not have book #{b}"
+        raise "The member does not have book #{b}."
       end
       book.check_out(@today.get_date + 7)
     end
