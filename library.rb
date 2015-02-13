@@ -97,6 +97,9 @@ class Member
 end
 
 class Library
+  # for testing purposes
+  attr :current_member
+
   def initialize
     @all_books = Array.new
     @all_members = {}
@@ -334,3 +337,4 @@ end
 puts tm.serve("Alice")
 puts tm.renew([4])
 puts tm.find_all_overdue_books
+puts tm.check_in([1,3])

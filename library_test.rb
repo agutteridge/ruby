@@ -7,8 +7,7 @@ class TestLibrary < Test::Unit::TestCase
   # create instance variables of objects for all tests
   def setup
     @cal = Calendar.instance
-    @book1 = Book.new(1, "1984", "George Orwell")
-    @book2 = Book.new(2, "1985", "Georgina Doorbell")
+    @book = Book.new(1, "1984", "George Orwell")
     @lib = Library.new
     @mem = Member.new("Anon", @lib)
     @lib.open
@@ -30,34 +29,34 @@ class TestLibrary < Test::Unit::TestCase
 
   # testing the Book class
   def test_book_get_id
-    assert_equal(1, @book1.get_id)
+    assert_equal(1, @book.get_id)
   end
 
   def test_book_get_title
-    assert_equal("1984", @book1.get_title)
+    assert_equal("1984", @book.get_title)
   end
 
   def test_book_get_author
-    assert_equal("George Orwell", @book1.get_author)
+    assert_equal("George Orwell", @book.get_author)
   end
 
   def test_book_get_due_date_nil
-    assert_nil(@book1.get_due_date)
+    assert_nil(@book.get_due_date)
   end
 
   def test_book_check_out
     date = @cal.get_date + 14
-    @book1.check_out(date)
-    assert_equal(date, @book1.get_due_date)
+    @book.check_out(date)
+    assert_equal(date, @book.get_due_date)
   end
 
   def test_book_check_in
-    @book1.check_in
-    assert_nil(@book1.get_due_date)
+    @book.check_in
+    assert_nil(@book.get_due_date)
   end
 
   def test_book_to_s
-    assert_equal("1: 1984, by George Orwell", @book1.to_s)
+    assert_equal("1: 1984, by George Orwell", @book.to_s)
   end
 
   def test_member_get_name
@@ -69,13 +68,13 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_member_check_out
-    @mem.check_out(@book1)
-    temp_set = Set.new(@book1)
+    @mem.check_out(@book)
+    temp_set = Set.new(@book)
     assert_equal(temp_set, @mem.get_books)
   end
 
   def test_member_give_back
-    @mem.give_back(@book1)
+    @mem.give_back(@book)
     assert(@mem.get_books.empty?)
   end
 
@@ -117,7 +116,26 @@ class TestLibrary < Test::Unit::TestCase
       @lib.open
       i -= 1
     end
-    assert_equal("Alice:\n1984, George Orwell", @lib.find_all_overdue_books)
+    assert_equal("Overdue books for Alice:\n1984, George Orwell", 
+      @lib.find_all_overdue_books)
+  end
+
+  def test_library_find_all_overdue_books_multiline
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    @lib.serve("Fred")
+    @lib.check_out([3,4])
+    i = 7
+    while i > 0
+      @lib.close
+      @lib.open
+      i -= 1
+    end
+    assert_equal("Overdue books for Alice:\n1984, by George Orwell\n
+      Overdue books for Fred:\n3: The Cider House Rules, by John Irving\n
+      Atlas Shrugged, by Ayn Rand", 
+      @lib.find_all_overdue_books)
   end
 
   # issue card
@@ -156,21 +174,22 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_find_overdue_books_none
     @lib.open
     @lib.serve("Alice")
-    assert_equal("None", @lib.find_overdue_books)
+    assert_equal("Overdue books for Alice:\nNone", @lib.find_overdue_books)
   end
 
   def test_library_find_overdue_books
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1])
-    i = 7
+    i = 8
     while i > 0
       @lib.close
       @lib.open
       i -=1
     end
     @lib.serve("Alice")
-    assert_equal("1984, George Orwell", @lib.find_overdue_books)
+    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell", 
+      @lib.find_overdue_books)
   end
 
   def test_library_find_overdue_books_not_open
@@ -195,7 +214,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_check_in_multi
     @lib.open
     @lib.serve("Alice")
-    @lib.check_out([1, 2])
+    @lib.check_out([1,2])
     assert_equal("Alice has returned 2 books", @lib.check_in([1, 2]))
   end    
 
@@ -204,7 +223,7 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     @lib.check_in([1])
-    assert_equal("1984, George Orwell", @lib.search("1984"))
+    assert_equal("1: 1984, by George Orwell\n", @lib.search("1984"))
   end
 
   def test_library_check_in_members_books
@@ -212,7 +231,7 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     @lib.check_in([1])
-    assert(@all_members.fetch("Alice").get_books.empty?)
+    assert(@lib.current_member.get_books.empty?)
   end
 
   def test_library_check_in_not_open
@@ -235,7 +254,7 @@ class TestLibrary < Test::Unit::TestCase
 
   # search
   def test_library_search_multiline
-    assert_equal("1984, George Orwell\n1985, Georgina Doorbell", 
+    assert_equal("1: 1984, by George Orwell\n5: 1985, by Georgina Doorbell", 
       @lib.search("geor"))
   end
 
@@ -253,13 +272,6 @@ class TestLibrary < Test::Unit::TestCase
     @lib.open
     @lib.serve("Alice")
     assert_equal("1 book has been checked out to Alice.", @lib.check_out([1]))
-  end
-
-  def test_library_check_out
-    @lib.open
-    @lib.serve("Alice")
-    @lib.check_out([1])
-    assert_equal(7, @book1.get_due_date)
   end
 
   def test_library_check_out_multi
@@ -282,7 +294,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_check_out_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise do @lib.check_out([2])
+    assert_raise do @lib.check_out([99])
     end
   end
 
@@ -291,26 +303,22 @@ class TestLibrary < Test::Unit::TestCase
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1])
-    assert_equal("1 books have been renewed for Alice.", @lib.renew([1]))
-  end
-
-  def test_library_renew_dates
-    @lib.open
-    @lib.serve("Alice")
-    @lib.check_out([1])
-    @lib.close
-    @lib.open
-    @lib.serve("Alice")
-    @lib.renew([1])
-    assert_equal(8, @book1.get_due_date)
+    assert_equal("1 book has been renewed for Alice.", @lib.renew([1]))
   end
 
   def test_library_renew_multi
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1, 2])
-    assert_equal("1 books have been renewed for Alice.", @lib.renew([1, 2]))
+    assert_equal("2 books have been renewed for Alice.", @lib.renew([1, 2]))
   end  
+
+  def test_library_renew_members_books
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    assert_equal("1 book has been renewed for Alice.", @lib.renew([1]))
+  end    
 
   def test_library_renew_not_open
     assert_raise do @lib.renew([1])
