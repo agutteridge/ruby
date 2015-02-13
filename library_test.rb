@@ -97,7 +97,7 @@ class TestLibrary < Test::Unit::TestCase
 
   def test_library_already_open
     @lib.open
-    assert_raise do @lib.open
+    assert_raise(RuntimeError.new("The library is already open!")) do @lib.open
     end
   end
 
@@ -150,7 +150,7 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_issue_card_not_open
-    assert_raise do @lib.issue_card("Alice")
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.issue_card("Alice")
     end
   end
 
@@ -172,7 +172,7 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_serve_not_open
-    assert_raise do @lib.serve("Alice")
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.serve("Alice")
     end
   end
 
@@ -199,13 +199,13 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_find_overdue_books_not_open
-    assert_raise do @lib.find_overdue_books
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.find_overdue_books
     end
   end
 
   def test_library_find_overdue_books_no_member
     @lib.open
-    assert_raise do @lib.find_overdue_books
+    assert_raise(RuntimeError.new("No member is currently being served.")) do @lib.find_overdue_books
     end
   end
 
@@ -249,20 +249,20 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_check_in_not_open
-    assert_raise do @lib.check_in([1])
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.check_in([1])
     end
   end
 
   def test_library_check_in_no_member
     @lib.open
-    assert_raise do @lib.check_in([1])
+    assert_raise(RuntimeError.new("No member is currently being served.")) do @lib.check_in([1])
     end
   end
 
   def test_library_check_in_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise do @lib.check_in([2])
+    assert_raise(RuntimeError.new("The member does not have book 2.")) do @lib.check_in([2])
     end
   end
 
@@ -304,7 +304,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_check_out_over3_at_once
     @lib.open
     @lib.serve("Alice")
-    assert_raise do @lib.check_out([1,2,3,4])
+    assert_raise(RuntimeError.new("This transaction will make Alice go over the 3 book limit.")) do @lib.check_out([1,2,3,4])
     end
   end
 
@@ -314,25 +314,25 @@ class TestLibrary < Test::Unit::TestCase
     @lib.check_out([1])
     @lib.check_out([2])
     @lib.check_out([3])
-    assert_raise do @lib.check_out([4])
+    assert_raise(RuntimeError.new("This transaction will make Alice go over the 3 book limit.")) do @lib.check_out([4])
     end
   end
   
   def test_library_check_out_not_open
-    assert_raise do @lib.check_out([1])
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.check_out([1])
     end
   end
 
   def test_library_check_out_no_member
     @lib.open
-    assert_raise do @lib.check_out([1])
+    assert_raise(RuntimeError.new("No member is currently being served.")) do @lib.check_out([1])
     end
   end
 
   def test_library_check_out_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise do @lib.check_out([99])
+    assert_raise(RuntimeError.new("The library does not have book 99.")) do @lib.check_out([99])
     end
   end
 
@@ -382,20 +382,20 @@ class TestLibrary < Test::Unit::TestCase
   end    
 
   def test_library_renew_not_open
-    assert_raise do @lib.renew([1])
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.renew([1])
     end
   end
 
   def test_library_renew_no_member
     @lib.open
-    assert_raise do @lib.renew([1])
+    assert_raise(RuntimeError.new("No member is currently being served.")) do @lib.renew([1])
     end
   end
 
   def test_library_renew_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise do @lib.renew([2])
+    assert_raise(RuntimeError.new("The member does not have book 2.")) do @lib.renew([2])
     end
   end
 
@@ -406,7 +406,7 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_close_not_open
-    assert_raise do @lib.close
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.close
     end
   end
 
