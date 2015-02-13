@@ -180,7 +180,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_find_overdue_books_none
     @lib.open
     @lib.serve("Alice")
-    assert_equal("Overdue books for Alice:\nNone", @lib.find_overdue_books)
+    assert_equal("Overdue books for Alice:\nNone\n", @lib.find_overdue_books)
   end
 
   def test_library_find_overdue_books
@@ -268,7 +268,7 @@ class TestLibrary < Test::Unit::TestCase
 
   # search
   def test_library_search_multiline
-    assert_equal("1: 1984, by George Orwell\n5: 1985, by Georgina Doorbell", 
+    assert_equal("1: 1984, by George Orwell\n5: 1985, by Georgina Doorbell\n", 
       @lib.search("geor"))
   end
 
@@ -293,6 +293,13 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     assert(!@lib.current_member.get_books.empty?)
+  end
+
+  def test_library_check_out_all
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    assert_equal("No books found.", @lib.search("Orwell"))
   end
 
   def test_library_check_out_multi
@@ -413,5 +420,51 @@ class TestLibrary < Test::Unit::TestCase
   # quit
   def test_library_quit
     assert_equal("The library is now closed for renovations.", @lib.quit)
+  end
+
+  def test_library_add_book
+    @lib.add_book("Winnie The Pooh\tA.A. Milne")
+    assert_equal("6: Winnie The Pooh, by A.A. Milne\n", @lib.search("pooh"))
+  end
+
+  def test_library_is_not_open
+    assert_raise(RuntimeError.new("The library is not open.")) do @lib.is_not_open
+    end
+  end
+
+  def test_library_no_member
+    assert_raise(RuntimeError.new("No member is currently being served.")) do @lib.no_member
+    end
+  end
+
+  def test_library_find_overdue_books_for_member_none
+    @lib.open
+    @lib.serve("Alice")
+    assert_equal("Overdue books for Alice:\nNone\n", @lib.find_overdue_books_for_member(@lib.current_member))
+  end
+
+  def test_library_find_overdue_books_for_member
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    i = 8
+    while i > 0
+      @lib.close
+      @lib.open
+      i -= 1
+    end
+    @lib.serve("Alice")
+    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell\n", @lib.find_overdue_books_for_member(@lib.current_member))
+  end
+
+  def test_library_a_to_multiline_s
+    b = Book.new(7, "a made up", "book")
+    assert_equal("1\na cat\n7: a made up, by book\n", @lib.a_to_multiline_s([1, "a cat", b]))
+  end
+
+  def test_library_find_book_by_id
+    temp_book_array = Array.new
+    temp_book_array << @book
+    assert_equal("1: 1984, by George Orwell", @lib.find_book_by_id(1, temp_book_array).to_s)
   end
 end
