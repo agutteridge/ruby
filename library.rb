@@ -112,6 +112,7 @@ class Library
   # helper method for initialize
   # lines in collection.txt must be tab-delimited
   def add_book(line)
+    line.sub!(/\n/, "")
     title, author = line.split("\t")
     # incremental ids
     num = @all_books.size + 1
@@ -199,7 +200,7 @@ class Library
   # for both find_overdue_books and find_all_overdue_books
   def find_overdue_books_for_member(mem)
     result_array = Array.new
-    result_array << "Overdue books for #{mem.get_name}:\n"
+    result_array << "Overdue books for #{mem.get_name}:"
 
     mem.get_books.each do |b| 
       if (b.get_due_date < @today.get_date)
@@ -218,7 +219,7 @@ class Library
   def a_to_multiline_s(result_array)
     result = ""
     result_array.each do |r|
-      result << r.to_s
+      result << "#{r.to_s}\n"
     end
 
     result
