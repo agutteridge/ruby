@@ -160,6 +160,12 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("Now serving Alice", @lib.serve("Alice"))
   end
 
+  def test_library_serve_current
+    @lib.open
+    @lib.serve("Alice")
+    assert_equal("Alice", @lib.current_member.get_name)
+  end
+
   def test_library_serve_no_card
     @lib.open
     assert_equal("Fred does not have a library card.", @lib.serve("Fred"))
@@ -209,7 +215,15 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     assert_equal("Alice has returned 1 book.", @lib.check_in([1]))
-  end    
+  end
+
+  def test_library_check_in_current
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    @lib.check_in([1])
+    assert(@lib.current_member.get_books.empty?)
+  end
 
   def test_library_check_in_multi
     @lib.open
@@ -274,6 +288,13 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("1 book has been checked out to Alice.", @lib.check_out([1]))
   end
 
+  def test_library_check_out_current
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    assert(!@lib.current_member.get_books.empty?)
+  end
+
   def test_library_check_out_multi
     @lib.open
     @lib.serve("Alice")
@@ -304,6 +325,29 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     assert_equal("1 book has been renewed for Alice.", @lib.renew([1]))
+  end
+
+  def test_library_renew_current
+    start = @cal.get_date # e.g. date = 0
+    @lib.open # date = 1
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    @lib.close
+    @lib.open # date = 2
+    @lib.serve("Alice")
+    @lib.renew([1]) # new due date = 2 + 7 = 9
+    assert_equal(start + 9, check_due_date(1, @lib.current_member))
+  end
+
+  # helper method for test_library_renew_current
+  def check_due_date(id, mem)
+    date_array = Array.new
+
+    mem.get_books.each do |b|
+      date_array << b.get_due_date
+    end
+
+    date_array[0]
   end
 
   def test_library_renew_multi

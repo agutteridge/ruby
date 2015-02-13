@@ -113,6 +113,7 @@ class Library
   # lines in collection.txt must be tab-delimited
   def add_book(line)
     title, author = line.split("\t")
+    # incremental ids
     num = @all_books.size + 1
     new_book = Book.new(num, title, author)
     @all_books << new_book
@@ -142,8 +143,6 @@ class Library
     end
   end
 
-  # raises an Exception if the library is not open, by calling
-  # find_overdue_books method
   def find_all_overdue_books
     result = "No books are overdue."
 
