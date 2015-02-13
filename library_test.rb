@@ -301,6 +301,23 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("2 books have been checked out to Alice.", @lib.check_out([1, 2]))
   end
 
+  def test_library_check_out_over3_at_once
+    @lib.open
+    @lib.serve("Alice")
+    assert_raise do @lib.check_out([1,2,3,4])
+    end
+  end
+
+  def test_library_check_out_over3_individual
+    @lib.open
+    @lib.serve("Alice")
+    @lib.check_out([1])
+    @lib.check_out([2])
+    @lib.check_out([3])
+    assert_raise do @lib.check_out([4])
+    end
+  end
+  
   def test_library_check_out_not_open
     assert_raise do @lib.check_out([1])
     end

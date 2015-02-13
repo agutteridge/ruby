@@ -283,6 +283,11 @@ class Library
     is_not_open
     no_member
 
+    current_books = @current_member.get_books.size 
+    if current_books + book_ids.size > 3
+      raise "This transaction will make #{@current_member.get_name} go over the 3 book limit."
+    end
+
     book_ids.each do |b| 
       book = find_book_by_id(b, @all_books)
       if book.nil?
