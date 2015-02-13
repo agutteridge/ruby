@@ -24,7 +24,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_calendar_advance
     start = @cal.get_date
     @cal.advance
-    assert_equal(@cal.get_date + 1, @cal.get_date)
+    assert_equal(start + 1, @cal.get_date)
   end   
 
   # testing the Book class
@@ -103,6 +103,7 @@ class TestLibrary < Test::Unit::TestCase
 
   # find all overdue books
   def test_library_find_all_overdue_books_none
+    @lib.open
     assert_equal("No books are overdue.", @lib.find_all_overdue_books)
   end
 
@@ -110,13 +111,13 @@ class TestLibrary < Test::Unit::TestCase
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1])
-    i = 7
+    i = 8
     while i > 0
       @lib.close
       @lib.open
       i -= 1
     end
-    assert_equal("Overdue books for Alice:\n1984, George Orwell", 
+    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell\n", 
       @lib.find_all_overdue_books)
   end
 
@@ -124,17 +125,16 @@ class TestLibrary < Test::Unit::TestCase
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1])
+    @lib.issue_card("Fred")
     @lib.serve("Fred")
     @lib.check_out([3,4])
-    i = 7
+    i = 8
     while i > 0
       @lib.close
       @lib.open
       i -= 1
     end
-    assert_equal("Overdue books for Alice:\n1984, by George Orwell\n
-      Overdue books for Fred:\n3: The Cider House Rules, by John Irving\n
-      Atlas Shrugged, by Ayn Rand", 
+    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell\nOverdue books for Fred:\n3: The Cider House Rules, by John Irving\n4: Atlas Shrugged, by Ayn Rand\n", 
       @lib.find_all_overdue_books)
   end
 
@@ -188,7 +188,7 @@ class TestLibrary < Test::Unit::TestCase
       i -=1
     end
     @lib.serve("Alice")
-    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell", 
+    assert_equal("Overdue books for Alice:\n1: 1984, by George Orwell\n", 
       @lib.find_overdue_books)
   end
 
@@ -208,14 +208,14 @@ class TestLibrary < Test::Unit::TestCase
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1])
-    assert_equal("Alice has returned 1 book", @lib.check_in([1]))
+    assert_equal("Alice has returned 1 book.", @lib.check_in([1]))
   end    
 
   def test_library_check_in_multi
     @lib.open
     @lib.serve("Alice")
     @lib.check_out([1,2])
-    assert_equal("Alice has returned 2 books", @lib.check_in([1, 2]))
+    assert_equal("Alice has returned 2 books.", @lib.check_in([1, 2]))
   end    
 
   def test_library_check_in_collection

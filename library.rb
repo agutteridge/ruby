@@ -90,9 +90,7 @@ class Member
   end
 
   def send_overdue_notice(notice)
-    message = "#{@name}: #{notice}"
-    puts message
-    message
+    "#{@name}: #{notice}"
   end
 end
 
@@ -130,7 +128,7 @@ class Library
     end
     @today.advance
     @open = true
-    "Today is day #{@today.get_date}" 
+    "Today is day #{@today.get_date}." 
   end
 
   # if library is closed, an Exception is raised
@@ -153,10 +151,16 @@ class Library
 
     @all_members.each do |member_name, member_obj| 
       @current_member = member_obj
-      if result == "No books are overdue."
-        result = find_overdue_books
-      else
-        result << find_overdue_books
+      str = find_overdue_books
+      # no overdue books for this member
+      if !(str.include?("None"))
+        # overwrite result string
+        if result == "No books are overdue."
+          result = str
+        # append to result string
+        else
+          result << str
+        end
       end
     end
 
@@ -183,7 +187,6 @@ class Library
     # default value is nil
     if @current_member.nil?
       "#{name_of_member} does not have a library card."
-      puts issue_card("Alice")
     else
       "Now serving #{name_of_member}"
     end
@@ -202,11 +205,11 @@ class Library
       end
     }
 
-    if result_array.empty?
-      result = "None"
-    else
-      result = a_to_multiline_s(result_array)
+    if result_array.size == 1
+      result_array << "None"
     end
+    
+    result = a_to_multiline_s(result_array)
   end
 
   def a_to_multiline_s(result_array)
@@ -230,12 +233,13 @@ class Library
       @current_member.give_back(book)
       book.check_in
       @all_books << book
-      if book_numbers.size == 1
-        "#{@current_member.get_name} has returned #{book_numbers.size} book."
-      else
-        "#{@current_member.get_name} has returned #{book_numbers.size} books."
-      end
     }
+
+    if book_numbers.size == 1
+      "#{@current_member.get_name} has returned #{book_numbers.size} book."
+    else
+      "#{@current_member.get_name} has returned #{book_numbers.size} books."
+    end
   end
 
   # searching through a data structure for a book using id
@@ -320,21 +324,21 @@ class Library
   end
 end
 
-tm = Library.new
-tm.open
-puts tm.issue_card("Alice")
-puts tm.search("atla")
-puts tm.check_out([1,3,4])
-puts tm.issue_card("Fred")
-puts tm.check_out([2])
-i = 8
-while i > 0
-  tm.close
-  tm.open
-  i -= 1
-end
-# puts tm.find_overdue_books
-puts tm.serve("Alice")
-puts tm.renew([4])
-puts tm.find_all_overdue_books
-puts tm.check_in([1,3])
+# tm = Library.new
+# tm.open
+# puts tm.issue_card("Alice")
+# puts tm.search("atla")
+# puts tm.check_out([1,3,4])
+# puts tm.issue_card("Fred")
+# puts tm.check_out([2])
+# i = 8
+# while i > 0
+#   tm.close
+#   tm.open
+#   i -= 1
+# end
+# # puts tm.find_overdue_books
+# puts tm.serve("Alice")
+# puts tm.renew([4])
+# puts tm.find_all_overdue_books
+# puts tm.check_in([1,3])
