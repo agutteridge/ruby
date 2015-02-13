@@ -111,11 +111,7 @@ class Library
   end
 
   def add_book(line)
-    # appears to have newline at the end?
-    title = line.sub(/\t.*/, "")
-    author = line.sub(/.*\t/, "")
-    title.sub!(/\n/, "")
-    author.sub!(/\n/, "")
+    title, author = line.split("\t")
 
     num = @all_books.size + 1
     new_book = Book.new(num, title, author)
@@ -123,8 +119,9 @@ class Library
   end
 
   def open
-    if (@open) 
+    if @open 
       raise 'The library is already open!'
+    end
     @today.advance
     @open = true
     "Today is day #{@today.get_date}"
@@ -142,7 +139,8 @@ class Library
   end
 
   def issue_card(name_of_member)
-    if !@open raise 'The library is not open'
+    if !@open 
+      raise 'The library is not open'
     end
 
     if @all_members.include? name_of_member
@@ -156,6 +154,4 @@ class Library
   def serve(name_of_member)
     @all_members.fetch(name_of_member)
   end
-end
-
 end
