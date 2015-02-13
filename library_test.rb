@@ -10,18 +10,22 @@ class TestLibrary < Test::Unit::TestCase
     @book1 = Book.new(1, "1984", "George Orwell")
     @book2 = Book.new(2, "1985", "Georgina Doorbell")
     @lib = Library.new
-    @mem = Member.new("Alice", @lib)
+    @mem = Member.new("Anon", @lib)
+    @lib.open
+    @lib.issue_card("Alice")
+    @lib.close
   end
 
   # testing the Calendar class
   # must be called before all Calendar.advance methods to pass
   def test_calendar_init
-    assert_equal(0, @cal.get_date)
+    assert_equal(1, @cal.get_date)
   end
 
   def test_calendar_advance
+    start = @cal.get_date
     @cal.advance
-    assert_equal(1, @cal.get_date)
+    assert_equal(@cal.get_date + 1, @cal.get_date)
   end   
 
   # testing the Book class
@@ -56,13 +60,8 @@ class TestLibrary < Test::Unit::TestCase
     assert_equal("1: 1984, by George Orwell", @book1.to_s)
   end
 
-  # testing the Member class
-  def test_member_init
-    assert_equal(@lib, @mem.library)
-  end
-
   def test_member_get_name
-    assert_equal("Alice", @mem.get_name)
+    assert_equal("Anon", @mem.get_name)
   end
 
   def test_member_no_books
@@ -81,28 +80,26 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_member_send_overdue_notice
-    assert_equal("Alice: Books are overdue", 
+    assert_equal("Anon: Books are overdue", 
       @mem.send_overdue_notice("Books are overdue"))
   end
 
-  # testing the Library class
-  def test_library_init
+  # open
+  def test_library_open
+    start = @cal.get_date + 1
+    assert_equal("Today is day #{start}.", @lib.open)
   end
 
-  # open
   def test_library_open_date
     tempCal = @cal.get_date
     @lib.open
     assert_equal(tempCal + 1, @cal.get_date)
   end
 
-  def test_library_open
-    assert_equal("Today is day 1.", @lib.open)
-  end
-
   def test_library_already_open
     @lib.open
-    assert_raise(Exception, @lib.open)
+    assert_raise do @lib.open
+    end
   end
 
   # find all overdue books
@@ -118,7 +115,7 @@ class TestLibrary < Test::Unit::TestCase
     while i > 0
       @lib.close
       @lib.open
-      i +=1
+      i -= 1
     end
     assert_equal("Alice:\n1984, George Orwell", @lib.find_all_overdue_books)
   end
@@ -126,17 +123,17 @@ class TestLibrary < Test::Unit::TestCase
   # issue card
   def test_library_issue_card
     @lib.open
-    assert_equal("Library card issued to Alice.", @lib.issue_card("Alice"))
+    assert_equal("Library card issued to Fred.", @lib.issue_card("Fred"))
   end
 
   def test_library_issue_card_already
     @lib.open
-    @lib.issue_card("Alice")
-    assert_equal("Alice already has a library card.", @lib.issue_card(@mem))
+    assert_equal("Alice already has a library card.", @lib.issue_card("Alice"))
   end
 
   def test_library_issue_card_not_open
-    assert_raise(Exception, @lib.issue_card(@mem))
+    assert_raise do @lib.issue_card("Alice")
+    end
   end
 
   # serve
@@ -147,11 +144,12 @@ class TestLibrary < Test::Unit::TestCase
 
   def test_library_serve_no_card
     @lib.open
-    assert_equal("Alice does not have a library card.", @lib.serve("Alice"))
+    assert_equal("Fred does not have a library card.", @lib.serve("Fred"))
   end
 
   def test_library_serve_not_open
-    assert_raise(Exception, @lib.serve(@mem))
+    assert_raise do @lib.serve("Alice")
+    end
   end
 
   # find overdue books
@@ -169,19 +167,21 @@ class TestLibrary < Test::Unit::TestCase
     while i > 0
       @lib.close
       @lib.open
-      i +=1
+      i -=1
     end
     @lib.serve("Alice")
     assert_equal("1984, George Orwell", @lib.find_overdue_books)
   end
 
   def test_library_find_overdue_books_not_open
-    assert_raise(Exception, @lib.find_all_overdue_books)
+    assert_raise do @lib.find_all_overdue_books
+    end
   end
 
   def test_library_find_overdue_books_no_member
     @lib.open
-    assert_raise(Exception, @lib.find_overdue_books)
+    assert_raise do @lib.find_overdue_books
+    end
   end
 
   # check in
@@ -212,28 +212,31 @@ class TestLibrary < Test::Unit::TestCase
     @lib.serve("Alice")
     @lib.check_out([1])
     @lib.check_in([1])
-    assert(@mem.get_books.empty?)
+    assert(@all_members.fetch("Alice").get_books.empty?)
   end
 
   def test_library_check_in_not_open
-    assert_raise(Exception, @lib.check_in([1]))
+    assert_raise do @lib.check_in([1])
+    end
   end
 
   def test_library_check_in_no_member
     @lib.open
-    assert_raise(Exception, @lib.check_in([1]))
+    assert_raise do @lib.check_in([1])
+    end
   end
 
   def test_library_check_in_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise(Exception, @lib.check_in([2]))
+    assert_raise do @lib.check_in([2])
+    end
   end
 
   # search
   def test_library_search_multiline
     assert_equal("1984, George Orwell\n1985, Georgina Doorbell", 
-      @lib.search("198"))
+      @lib.search("geor"))
   end
 
   def test_library_search_none
@@ -255,7 +258,7 @@ class TestLibrary < Test::Unit::TestCase
   def test_library_check_out
     @lib.open
     @lib.serve("Alice")
-    @lib.check_out([1]))
+    @lib.check_out([1])
     assert_equal(7, @book1.get_due_date)
   end
 
@@ -266,18 +269,21 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_check_out_not_open
-    assert_raise(Exception, @lib.check_out([1]))
+    assert_raise do @lib.check_out([1])
+    end
   end
 
   def test_library_check_out_no_member
     @lib.open
-    assert_raise(Exception, @lib.check_out([1]))
+    assert_raise do @lib.check_out([1])
+    end
   end
 
   def test_library_check_out_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise(Exception, @lib.check_out([2]))
+    assert_raise do @lib.check_out([2])
+    end
   end
 
   # renew
@@ -307,18 +313,21 @@ class TestLibrary < Test::Unit::TestCase
   end  
 
   def test_library_renew_not_open
-    assert_raise(Exception, @lib.renew([1]))
+    assert_raise do @lib.renew([1])
+    end
   end
 
   def test_library_renew_no_member
     @lib.open
-    assert_raise(Exception, @lib.renew([1]))
+    assert_raise do @lib.renew([1])
+    end
   end
 
   def test_library_renew_wrong_book
     @lib.open
     @lib.serve("Alice")
-    assert_raise(Exception, @lib.renew([2]))
+    assert_raise do @lib.renew([2])
+    end
   end
 
   # close
@@ -328,7 +337,8 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_close_not_open
-    assert_raise(Exception, @lib.close)
+    assert_raise do @lib.close
+    end
   end
 
   # quit

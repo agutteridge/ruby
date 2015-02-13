@@ -127,7 +127,7 @@ class Library
     end
     @today.advance
     @open = true
-    "Today is day #{@today.get_date}"
+    "Today is day #{@today.get_date}" 
   end
 
   # if library is closed, an Exception is raised
@@ -146,33 +146,29 @@ class Library
   end
 
   def find_all_overdue_books
-    overdue = false
-    result = ""
+    result = "No books are overdue."
 
-    @all_members.each do |m| 
-      puts "#{m.get_name}: \n"
-      current_member = m
-      s = find_overdue_books
-      if s != "None"
-        overdue = true
-      end 
+    @all_members.each do |member_name, member_obj| 
+      @current_member = member_obj
+      if result == "No books are overdue."
+        result = find_overdue_books
+      else
+        result << find_overdue_books
+      end
     end
 
-    if !overdue
-      result = "No books are overdue."
-    end
-    
-    puts result
-    result
+    result    
   end
 
   def issue_card(name_of_member)
     is_not_open
 
-    if @all_members.include? name_of_member
+    if @all_members.has_key?(name_of_member)
       "#{name_of_member} already has a library card."
     else
-      Member.new(name_of_member, self)
+      new_member = Member.new(name_of_member, self)
+      @current_member = new_member
+      @all_members[name_of_member] = new_member
       "Library card issued to #{name_of_member}."
     end
   end
@@ -180,10 +176,11 @@ class Library
   def serve(name_of_member)
     is_not_open
 
-    @current_member = @all_members.fetch(name_of_member)
+    @current_member = @all_members.fetch(name_of_member, nil)
     # default value is nil
     if @current_member.nil?
       "#{name_of_member} does not have a library card."
+      puts issue_card("Alice")
     else
       "Now serving #{name_of_member}"
     end
@@ -193,22 +190,28 @@ class Library
     is_not_open
     no_member
 
-    overdue = false
+    result_array = Array.new
+    result_array << "Overdue books for #{@current_member.get_name}:\n"
 
-    @current_member.get_books.each do |b| 
+    @current_member.get_books.each { |b| 
       if (b.get_due_date < @today.get_date)
-        overdue = true
-        result << "#{b.to_s}\n"
+        result_array << b
       end
+    }
+
+    if result_array.empty?
+      result = "None"
+    else
+      result = a_to_multiline_s(result_array)
+    end
+  end
+
+  def a_to_multiline_s(result_array)
+    result = ""
+    result_array.each do |r|
+      result << r.to_s
     end
 
-    # string is printed, but also returned
-    # for testing purposes and for find_all_overdue_books
-    if !overdue
-      result = "None"
-    end
-    
-    puts result
     result
   end
 
@@ -216,7 +219,7 @@ class Library
     is_not_open
     no_member
 
-    book_numbers.each do |b| 
+    book_numbers.each { |b| 
       book = find_book_by_id(b, @current_member.get_books)
       if book.nil?
         raise "The member does not have book #{b}"
@@ -224,19 +227,23 @@ class Library
       @current_member.give_back(book)
       book.check_in
       @all_books << book
-      "#{@current_member.get_name} has returned #{book_numbers.size} books."
-    end
+      if book_numbers.size == 1
+        "#{@current_member.get_name} has returned #{book_numbers.size} book."
+      else
+        "#{@current_member.get_name} has returned #{book_numbers.size} books."
+      end
+    }
   end
 
   # searching through a data structure for a book using id
   def find_book_by_id(id, book_collection)
-    book_collection.each do |b|
+    result = Array.new
+    book_array = book_collection.each { |b|
       if b.get_id == id
-        b
+        result << b
       end
-    end
-    # returns nil if no book is found
-    nil
+    }
+    result[0]
   end
 
   def search(string)
@@ -246,31 +253,27 @@ class Library
       result_array = Array.new
       s = string.downcase
 
-      @all_books.each do |b| 
-      if b.get_title.downcase.include?(s)
-        result_array << b
-      elsif b.get_author.downcase.include?(s)
-        result_array << b
-      end
-    
+      @all_books.each { |b| 
+        if b.get_title.downcase.include?(s)
+          result_array << b
+        elsif b.get_author.downcase.include?(s)
+          result_array << b
+        end
+      }
+
       if result_array.empty?
         "No books found."
       else
-        result = ""
-        result_array.each do |r|
-          result << r.to_s
-        end
-
-        result
+        a_to_multiline_s(result_array)
       end
     end
   end
 
-  def check_out(book_ids)
+   def check_out(book_ids)
     is_not_open
     no_member
 
-    book_ids.each do |b| 
+    book_ids.each { |b| 
       book = find_book_by_id(b, @all_books)
       if book.nil?
         raise "The library does not have book #{b}"
@@ -278,31 +281,56 @@ class Library
       @current_member.check_out(book)
       book.check_out(@today.get_date + 7)
       @all_books.delete(book)
-      "#{book_ids.size} have been checked out to #{@current_member.get_name}."
+    }
+
+    if book_ids.size == 1
+      "#{book_ids.size} book has been checked out to #{@current_member.get_name}."        
+    else
+      "#{book_ids.size} books have been checked out to #{@current_member.get_name}."
     end
   end
 
   def renew(book_ids)
-    is_not_open
-    no_member
-
     book_ids.each do |b| 
       book = find_book_by_id(b, @current_member.get_books)
       if book.nil?
         raise "The member does not have book #{b}"
       end
       book.check_out(@today.get_date + 7)
-      "#{book_ids.size} have been renewed for #{@current_member.get_name}."
+    end
+    if book_ids.size == 1
+      "#{book_ids.size} book has been renewed for #{@current_member.get_name}."
+    else
+      "#{book_ids.size} books have been renewed for #{@current_member.get_name}."
     end
   end
 
   def close
     is_not_open
     @open = false
+    @current_member = nil
     "Good night."
   end
 
   def quit
-    "The library is now closed for renovations"
+    "The library is now closed for renovations."
   end
 end
+
+tm = Library.new
+tm.open
+puts tm.issue_card("Alice")
+puts tm.search("atla")
+puts tm.check_out([1,3,4])
+puts tm.issue_card("Fred")
+puts tm.check_out([2])
+i = 8
+while i > 0
+  tm.close
+  tm.open
+  i -= 1
+end
+# puts tm.find_overdue_books
+puts tm.serve("Alice")
+puts tm.renew([4])
+puts tm.find_all_overdue_books
