@@ -101,9 +101,6 @@ class Library
   def initialize
     @all_books = Array.new
     @all_members = {}
-    # set default value to nil so an Exception is not raised
-    # if fetch is called and the key does not exist
-    @all_members.default = nil
 
     IO.foreach("collection.txt") { |x| add_book(x) }
 
@@ -116,7 +113,6 @@ class Library
   # lines in collection.txt must be tab-delimited
   def add_book(line)
     title, author = line.split("\t")
-
     num = @all_books.size + 1
     new_book = Book.new(num, title, author)
     @all_books << new_book
@@ -146,12 +142,13 @@ class Library
     end
   end
 
+  # raises an Exception if the library is not open, by calling
+  # find_overdue_books method
   def find_all_overdue_books
     result = "No books are overdue."
 
     @all_members.each do |member_name, member_obj| 
-      @current_member = member_obj
-      str = find_overdue_books
+      str = find_overdue_books_for_member(member_obj)
       # no overdue books for this member
       if !(str.include?("None"))
         # overwrite result string i.e. first member
@@ -164,7 +161,7 @@ class Library
       end
     end
 
-    result    
+    result
   end
 
   def issue_card(name_of_member)
@@ -196,22 +193,29 @@ class Library
     is_not_open
     no_member
 
-    result_array = Array.new
-    result_array << "Overdue books for #{@current_member.get_name}:\n"
+    find_overdue_books_for_member(@current_member)
+  end
 
-    @current_member.get_books.each do |b| 
+  # iterating over Member.get_books
+  # for both find_overdue_books and find_all_overdue_books
+  def find_overdue_books_for_member(mem)
+    result_array = Array.new
+    result_array << "Overdue books for #{mem.get_name}:\n"
+
+    mem.get_books.each do |b| 
       if (b.get_due_date < @today.get_date)
-        result_array << b
+        result_array << b.to_s
       end
     end
 
     if result_array.size == 1
       result_array << "None"
     end
-    
-    result = a_to_multiline_s(result_array)
+
+    a_to_multiline_s(result_array)
   end
 
+  # formats an array as a multiline string
   def a_to_multiline_s(result_array)
     result = ""
     result_array.each do |r|

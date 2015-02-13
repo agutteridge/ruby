@@ -193,7 +193,7 @@ class TestLibrary < Test::Unit::TestCase
   end
 
   def test_library_find_overdue_books_not_open
-    assert_raise do @lib.find_all_overdue_books
+    assert_raise do @lib.find_overdue_books
     end
   end
 
