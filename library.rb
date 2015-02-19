@@ -199,14 +199,8 @@ class Library
   # iterating over Member.get_books
   # for both find_overdue_books and find_all_overdue_books
   def find_overdue_books_for_member(mem)
-    result_array = Array.new
-    result_array << "Overdue books for #{mem.get_name}:"
-
-    mem.get_books.each do |b| 
-      if (b.get_due_date < @today.get_date)
-        result_array << b.to_s
-      end
-    end
+    result_array = mem.get_books.select { |b| b.get_due_date < @today.get_date }
+    result_array.insert(0, "Overdue books for #{mem.get_name}:")
 
     if result_array.size == 1
       result_array << "None"
@@ -248,12 +242,7 @@ class Library
 
   # searching through a data structure for a book using id
   def find_book_by_id(id, book_collection)
-    result = Array.new
-    book_array = book_collection.each do |b|
-      if b.get_id == id
-        result << b
-      end
-    end
+    result = book_collection.select { |b| b.get_id == id }
     result[0]
   end
 
@@ -261,16 +250,8 @@ class Library
     if string.length < 4
       "Search string must contain at least four characters."
     else
-      result_array = Array.new
       s = string.downcase
-
-      @all_books.each do |b| 
-        if b.get_title.downcase.include?(s)
-          result_array << b
-        elsif b.get_author.downcase.include?(s)
-          result_array << b
-        end
-      end
+      result_array = @all_books.select { |b| b.get_title.downcase.include?(s) || b.get_author.downcase.include?(s) }
 
       if result_array.empty?
         "No books found."
